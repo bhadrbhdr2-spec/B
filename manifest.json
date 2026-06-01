@@ -1,0 +1,28 @@
+{
+  "name": "سريع — نظام التوصيل",
+  "short_name": "سريع",
+  "description": "نظام إدارة التوصيل الاحترافي للشركات والمطاعم",
+  "start_url": "/B/index.html",
+  "scope": "/B/",
+  "display": "standalone",
+  "background_color": "#07070f",
+  "theme_color": "#4f8eff",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/B/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/B/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
