@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#080812">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<title>سريع v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, set, onValue, update, get, remove }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+const cfg = {
+  apiKey:"AIzaSyBl4BI7G_ZNqPj6CK0JBWyt4zxHD1uuuEU",
+  authDomain:"delivery-pro-bdbc9.firebaseapp.com",
+  databaseURL:"https://delivery-pro-bdbc9-default-rtdb.firebaseio.com",
+  projectId:"delivery-pro-bdbc9",
+  storageBucket:"delivery-pro-bdbc9.firebasestorage.app",
+  messagingSenderId:"969008218813",
+  appId:"1:969008218813:web:c0ee37bf95527d6ae4edd4"
+};
+try {
+  const app = initializeApp(cfg);
+  const db  = getDatabase(app);
+  window.$db=db;window.$ref=ref;window.$push=push;window.$set=set;
+  window.$onValue=onValue;window.$update=update;window.$get=get;window.$remove=remove;
+  window.$fb=true;
+} catch(e){window.$fb=false;}
+</script>
+
+<style>
+:root{
+  --bg:#080812;--s1:#0d0d1f;--s2:#13132a;--s3:#1a1a35;
+  --bdr:rgba(255,255,255,.06);--bdr2:rgba(255,255,255,.12);
+  --txt:#eeeeff;--muted:rgba(238,238,255,.4);
+  --blue:#4f8eff;--indigo:#6366f1;--green:#10d97a;
+  --red:#ff4560;--orange:#ff8c42;--gold:#f5c842;--purple:#a855f7;--teal:#14b8a6;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);font-family:'Tajawal',sans-serif;color:var(--txt);overflow:hidden}
+.scr{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
+.scr.on{display:flex}
+.body{flex:1;overflow-y:auto;overflow-x:hidden}
+.body::-webkit-scrollbar{display:none}
+.pad{padding:0 14px 90px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ping{0%{transform:scale(1);opacity:.8}100%{transform:scale(2.2);opacity:0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes newBlink{0%,100%{border-color:rgba(79,142,255,.2)}50%{border-color:rgba(79,142,255,.8);box-shadow:0 0 24px rgba(79,142,255,.2)}}
+.fu{animation:fadeUp .4s cubic-bezier(.22,.68,0,1.2) both}
+.fu1{animation-delay:.05s}.fu2{animation-delay:.1s}.fu3{animation-delay:.15s}
+
+/* LOGIN */
+#scr-login{background:var(--bg);align-items:center;justify-content:center;padding:20px}
+.login-wrap{width:100%;max-width:360px}
+.logo-box{text-align:center;margin-bottom:28px}
+.logo-ico{width:76px;height:76px;border-radius:24px;background:linear-gradient(135deg,var(--blue),var(--purple));display:inline-flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:10px;box-shadow:0 12px 32px rgba(79,142,255,.3)}
+.logo-t{font-size:32px;font-weight:900;background:linear-gradient(90deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
+.logo-s{color:var(--muted);font-size:12px;margin-top:3px}
+.logo-v{display:inline-block;background:rgba(79,142,255,.12);border:1px solid rgba(79,142,255,.25);border-radius:8px;padding:2px 10px;font-size:11px;color:var(--blue);font-weight:700;margin-top:6px}
+.rg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.rc{background:var(--s2);border:1.5px solid var(--bdr);border-radius:16px;padding:14px 6px;text-align:center;cursor:pointer;transition:all .2s}
+.rc.sel{border-color:var(--blue);background:rgba(79,142,255,.08)}
+.rc .ri{font-size:26px;margin-bottom:5px}
+.rc p{font-size:12px;font-weight:700;color:var(--muted)}
+.rc.sel p{color:var(--blue)}
+.inp{width:100%;background:var(--s2);border:1.5px solid var(--bdr);border-radius:14px;padding:13px 16px;color:var(--txt);font-size:15px;font-family:inherit;outline:none;margin-bottom:10px;direction:rtl;transition:border .2s}
+.inp:focus{border-color:var(--blue)}
+.inp-wrap{position:relative}
+.inp-wrap .eye{position:absolute;left:14px;top:13px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px}
+textarea.inp{resize:none}
+.btn{width:100%;padding:15px;border:none;border-radius:16px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn-blue{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff;box-shadow:0 8px 24px rgba(79,142,255,.25)}
+.btn-blue:active{transform:scale(.97)}
+.btn-green{background:linear-gradient(135deg,#0a9e5a,var(--green));color:#fff}
+.btn-red{background:rgba(255,69,96,.1);border:1px solid rgba(255,69,96,.2);color:var(--red)}
+.btn-orange{background:rgba(255,140,66,.1);border:1px solid rgba(255,140,66,.2);color:var(--orange)}
+.btn-gold{background:linear-gradient(135deg,#a07818,var(--gold));color:#000;font-weight:900}
+.btn-ghost{background:var(--s2);border:1px solid var(--bdr);color:var(--muted)}
+.btn-sm{padding:9px 16px;font-size:13px;border-radius:12px;width:auto}
+.btn-xs{padding:6px 12px;font-size:12px;border-radius:10px;width:auto}
+
+/* TOPBAR */
+.topbar{padding:44px 14px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bg)}
+.topbar h2{font-size:19px;font-weight:900}
+.tbr{display:flex;gap:7px;align-items:center}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--bdr);flex-shrink:0;padding:0 14px;overflow-x:auto}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;background:none;border:none;border-bottom:2.5px solid transparent;padding:11px 12px;color:var(--muted);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .2s}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--bdr);border-radius:18px;padding:16px;margin-bottom:11px}
+.card2{background:var(--s2);border:1px solid var(--bdr);border-radius:14px;padding:13px}
+.card3{background:var(--s3);border-radius:12px;padding:10px 12px}
+
+/* BADGES */
+.bdg{border-radius:9px;padding:3px 9px;font-size:11px;font-weight:800;display:inline-block}
+.bdg-new{background:rgba(79,142,255,.15);color:var(--blue)}
+.bdg-acc{background:rgba(255,140,66,.15);color:var(--orange)}
+.bdg-pick{background:rgba(168,85,247,.15);color:var(--purple)}
+.bdg-done{background:rgba(16,217,122,.15);color:var(--green)}
+.bdg-can{background:rgba(255,69,96,.15);color:var(--red)}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(8,8,18,.97);backdrop-filter:blur(20px);border-top:1px solid var(--bdr);display:flex;padding:8px 0 20px}
+.nb{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:700;font-family:inherit;transition:color .2s;padding:4px 0;position:relative}
+.nb.on{color:var(--blue)}
+.nb svg{width:20px;height:20px}
+.nb-dot{position:absolute;top:0;right:calc(50% - 16px);background:var(--red);color:#fff;border-radius:8px;padding:1px 5px;font-size:9px;font-weight:900;min-width:16px;text-align:center}
+
+/* STATS */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.sg3{grid-template-columns:1fr 1fr 1fr}
+.sbox{background:var(--s1);border:1px solid var(--bdr);border-radius:16px;padding:14px;text-align:center}
+.snum{font-size:22px;font-weight:900;margin-bottom:2px}
+.slbl{color:var(--muted);font-size:10px;font-weight:700}
+
+/* LIVE DOT */
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;position:relative}
+.ldot::after{content:'';position:absolute;inset:0;border-radius:50%;background:var(--green);animation:ping 1.4s ease-out infinite}
+
+/* WALLET */
+.wal-hero{background:linear-gradient(135deg,#1a1200,#2a1e00);border:1px solid rgba(245,200,66,.18);border-radius:22px;padding:24px;margin-bottom:14px;text-align:center}
+.wal-bal{font-size:38px;font-weight:900;color:var(--gold);margin:8px 0 4px;letter-spacing:-1px}
+
+/* MAP */
+.map-wrap{border-radius:18px;overflow:hidden;margin-bottom:12px;border:1px solid var(--bdr)}
+#map-admin,#map-merchant,#map-driver{height:220px;background:#0a1a0a}
+.leaflet-container{background:#0d1a0d!important}
+
+/* MODAL */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:flex-end;backdrop-filter:blur(4px)}
+#modal.on{display:flex}
+#mbox{width:100%;background:var(--s1);border-radius:28px 28px 0 0;padding:22px;max-height:92vh;overflow-y:auto;animation:slideUp .3s ease}
+#mbox::-webkit-scrollbar{display:none}
+.mhandle{width:36px;height:4px;background:var(--bdr2);border-radius:2px;margin:0 auto 18px}
+
+/* TOAST */
+#toast{position:fixed;top:54px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--s2);border:1px solid var(--bdr2);border-radius:14px;padding:9px 18px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none;max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* AVATAR */
+.avatar{width:36px;height:36px;border-radius:12px;background:var(--s2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
+
+/* WALLET CHIP */
+.wcchip{background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);border-radius:10px;padding:5px 10px;display:flex;align-items:center;gap:5px;cursor:pointer}
+.wcchip .wa{color:var(--gold);font-weight:900;font-size:13px}
+
+/* NEW ORDER */
+.new-pulse{animation:newBlink 2s ease infinite}
+
+/* FORM */
+.flbl{color:var(--muted);font-size:12px;font-weight:700;margin-bottom:5px;display:block}
+.frow{margin-bottom:12px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* STATUS BTN */
+.s-avail{background:rgba(16,217,122,.08);border:1px solid rgba(16,217,122,.2);border-radius:10px;padding:5px 12px;color:var(--green);font-size:11px;font-weight:800;cursor:pointer;font-family:inherit}
+.s-busy{background:rgba(255,69,96,.08);border:1px solid rgba(255,69,96,.2);border-radius:10px;padding:5px 12px;color:var(--red);font-size:11px;font-weight:800;cursor:pointer;font-family:inherit}
+
+/* CHIPS */
+.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
+.chips::-webkit-scrollbar{display:none}
+.chip{background:var(--s2);border:1px solid var(--bdr);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap;font-family:inherit;flex-shrink:0}
+.chip.on{background:rgba(79,142,255,.1);border-color:rgba(79,142,255,.3);color:var(--blue)}
+
+.empty{text-align:center;padding:48px 16px;color:var(--muted)}
+.empty .ei{font-size:50px;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bdr)}
+.row:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- ════ LOGIN ════ -->
+<div class="scr on" id="scr-login">
+  <div class="login-wrap fu" style="margin:auto">
+    <div class="logo-box">
+      <div class="logo-ico">🚀</div>
+      <div class="logo-t">سريع</div>
+      <div class="logo-s">نظام إدارة التوصيل الاحترافي</div>
+      <span class="logo-v">v2.0</span>
+    </div>
+
+    <div class="rg">
+      <div class="rc" id="rc-admin"    onclick="selRole('admin')">   <div class="ri">👑</div><p>المدير</p></div>
+      <div class="rc" id="rc-merchant" onclick="selRole('merchant')"><div class="ri">🏪</div><p>التاجر</p></div>
+      <div class="rc" id="rc-driver"   onclick="selRole('driver')">  <div class="ri">🛵</div><p>السائق</p></div>
+    </div>
+
+    <div id="lfields" style="display:none">
+      <div id="lf-admin" style="display:none">
+        <div class="frow"><label class="flbl">👤 اسم المستخدم</label><input class="inp" id="f-admin-user" placeholder="admin" style="margin:0"></div>
+      </div>
+      <div id="lf-phone" style="display:none">
+        <div class="frow"><label class="flbl">📞 رقم الهاتف</label><input class="inp" id="f-phone" type="tel" placeholder="07XXXXXXXXX" style="margin:0"></div>
+      </div>
+      <div class="frow inp-wrap">
+        <label class="flbl">🔒 كلمة المرور</label>
+        <input class="inp" id="f-pass" type="password" placeholder="••••••••" style="margin:0">
+        <button class="eye" onclick="togglePass()">👁</button>
+      </div>
+      <button class="btn btn-blue" onclick="doLogin()">دخول →</button>
+    </div>
+
+    <div style="margin-top:12px;background:var(--s2);border:1px solid var(--bdr);border-radius:14px;padding:12px;text-align:center">
+      <p style="color:var(--muted);font-size:11px;line-height:1.9">
+        👑 المدير: <strong style="color:var(--blue)">admin</strong> / <span style="color:var(--muted)">••••••••</span><br>
+        🏪 التاجر: يدخل برقم هاتفه + كلمة المرور<br>
+        🛵 السائق: يدخل برقم هاتفه + كلمة المرور
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MERCHANT ════ -->
+<div class="scr" id="scr-merchant">
+  <div class="topbar">
+    <div><p style="color:var(--muted);font-size:11px">التاجر 🏪</p><h2 id="m-name-top"></h2></div>
+    <div class="tbr">
+      <div style="display:flex;align-items:center;gap:5px;background:rgba(16,217,122,.07);border:1px solid rgba(16,217,122,.15);border-radius:10px;padding:5px 10px">
+        <span class="ldot"></span><span style="color:var(--green);font-size:11px;font-weight:700">مباشر</span>
+      </div>
+      <div class="avatar" onclick="logout()">🚪</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="mt-new"    onclick="mTab('new')">📦 طلبية جديدة</button>
+    <button class="tab"    id="mt-active" onclick="mTab('active')">🔴 نشطة <span id="m-act-n" style="background:var(--red);color:#fff;border-radius:5px;padding:1px 5px;font-size:9px;display:none"></span></button>
+    <button class="tab"    id="mt-done"   onclick="mTab('done')">✅ منجزة</button>
+    <button class="tab"    id="mt-track"  onclick="mTab('track')">🗺️ تتبع</button>
+  </div>
+
+  <!-- NEW ORDER FORM -->
+  <div class="body" id="mp-new"><div class="pad"><div style="height:14px"></div>
+    <div class="card fu">
+      <p style="font-weight:900;font-size:16px;margin-bottom:16px">📦 رفع طلبية جديدة</p>
+      <div class="frow"><label class="flbl">👤 اسم الزبون *</label><input class="inp" id="mf-cust" placeholder="الاسم الكامل" style="margin:0"></div>
+      <div class="frow"><label class="flbl">📞 رقم هاتف الزبون *</label><input class="inp" id="mf-cphone" type="tel" placeholder="07XXXXXXXXX" style="margin:0"></div>
+      <div class="frow"><label class="flbl">📍 عنوان التوصيل *</label><textarea class="inp" id="mf-addr" rows="2" placeholder="المحافظة، الحي، الشارع، رقم البيت..." style="margin:0"></textarea></div>
+      <div class="frow"><label class="flbl">📝 وصف الوجبة / الطلبية *</label><input class="inp" id="mf-desc" placeholder="مثال: برجر دبل + مشروب" style="margin:0"></div>
+      <div class="g2">
+        <div class="frow"><label class="flbl">💰 سعر الطلبية (د.ع)</label><input class="inp" id="mf-price" type="number" placeholder="0" style="margin:0" oninput="mCalc()"></div>
+        <div class="frow"><label class="flbl">🛵 سعر التوصيل (د.ع)</label><input class="inp" id="mf-del" type="number" placeholder="0" style="margin:0" oninput="mCalc()"></div>
+      </div>
+      <div class="frow"><label class="flbl">💳 طريقة الدفع</label>
+        <div style="display:flex;gap:8px">
+          <div id="po-cash" onclick="selPay('cash')" style="flex:1;background:rgba(245,200,66,.1);border:2px solid var(--gold);border-radius:12px;padding:10px;text-align:center;cursor:pointer">
+            <div style="font-size:20px">💵</div><p style="font-size:12px;font-weight:700;color:var(--gold)">كاش</p>
+          </div>
+          <div id="po-online" onclick="selPay('online')" style="flex:1;background:var(--s2);border:2px solid var(--bdr);border-radius:12px;padding:10px;text-align:center;cursor:pointer">
+            <div style="font-size:20px">💳</div><p style="font-size:12px;font-weight:700;color:var(--muted)">إلكتروني</p>
+          </div>
+        </div>
+      </div>
+      <div class="frow"><label class="flbl">🗒️ ملاحظات (اختياري)</label><input class="inp" id="mf-notes" placeholder="تعليمات خاصة..." style="margin:0"></div>
+      <div id="m-calc" style="display:none;background:var(--s3);border-radius:12px;padding:12px;margin-bottom:14px">
+        <div class="row"><span style="color:var(--muted);font-size:13px">سعر الطلبية</span><span id="mc-p">0 د.ع</span></div>
+        <div class="row"><span style="color:var(--muted);font-size:13px">سعر التوصيل</span><span id="mc-d">0 د.ع</span></div>
+        <div style="display:flex;justify-content:space-between;padding-top:10px"><strong>الإجمالي</strong><strong style="color:var(--gold);font-size:17px" id="mc-t">0 د.ع</strong></div>
+      </div>
+      <button class="btn btn-blue" onclick="mPreview()">معاينة وإرسال 🚀</button>
+    </div>
+    <div class="sg fu fu1">
+      <div class="sbox"><div class="snum" id="ms-today" style="color:var(--blue)">0</div><div class="slbl">اليوم</div></div>
+      <div class="sbox"><div class="snum" id="ms-done"  style="color:var(--green)">0</div><div class="slbl">منجزة</div></div>
+      <div class="sbox"><div class="snum" id="ms-pend"  style="color:var(--orange)">0</div><div class="slbl">نشطة</div></div>
+      <div class="sbox"><div class="snum" id="ms-rev"   style="color:var(--gold)">0</div><div class="slbl">إيراد د.ع</div></div>
+    </div>
+  </div></div>
+
+  <div class="body" id="mp-active" style="display:none"><div class="pad"><div style="height:14px"></div><div id="m-act-list"></div></div></div>
+  <div class="body" id="mp-done"   style="display:none"><div class="pad"><div style="height:14px"></div><div id="m-done-list"></div></div></div>
+
+  <!-- TRACKING MAP for merchant -->
+  <div class="body" id="mp-track" style="display:none"><div class="pad"><div style="height:14px"></div>
+    <p style="font-weight:800;margin-bottom:10px">🗺️ تتبع السائقين النشطين</p>
+    <div class="map-wrap"><div id="map-merchant"></div></div>
+    <div id="m-track-orders"></div>
+  </div></div>
+
+  <nav class="bnav">
+    <button class="nb on" id="mn-new"    onclick="mTab('new')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>جديدة</button>
+    <button class="nb"    id="mn-active" onclick="mTab('active')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>نشطة</button>
+    <button class="nb"    id="mn-done"   onclick="mTab('done')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>منجزة</button>
+    <button class="nb"    id="mn-track"  onclick="mTab('track')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M2 12h4M18 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>تتبع</button>
+  </nav>
+</div>
+
+<!-- ════ DRIVER ════ -->
+<div class="scr" id="scr-driver">
+  <div class="topbar">
+    <div><p style="color:var(--muted);font-size:11px">السائق 🛵</p><h2 id="d-name-top"></h2></div>
+    <div class="tbr">
+      <div class="wcchip" onclick="dTab('wallet')">💰<span class="wa" id="d-wal-top">0</span><span style="color:var(--muted);font-size:10px">د.ع</span></div>
+      <button id="d-status-btn" class="s-avail" onclick="toggleAvail()">🟢 متاح</button>
+      <div class="avatar" onclick="logout()">🚪</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="dt-avail"  onclick="dTab('avail')">متاحة <span id="d-new-n" style="background:var(--red);color:#fff;border-radius:5px;padding:1px 5px;font-size:9px;display:none"></span></button>
+    <button class="tab"    id="dt-mine"   onclick="dTab('mine')">طلباتي</button>
+    <button class="tab"    id="dt-wallet" onclick="dTab('wallet')">💰 محفظتي</button>
+    <button class="tab"    id="dt-hist"   onclick="dTab('hist')">السجل</button>
+  </div>
+
+  <div class="body" id="dp-avail"><div class="pad"><div style="height:14px"></div><div id="d-avail-list"></div></div></div>
+  <div class="body" id="dp-mine"  style="display:none"><div class="pad"><div style="height:14px"></div><div id="d-mine-list"></div></div></div>
+
+  <!-- WALLET - driver only -->
+  <div class="body" id="dp-wallet" style="display:none"><div class="pad"><div style="height:14px"></div>
+    <div class="wal-hero fu">
+      <p style="color:rgba(245,200,66,.6);font-size:12px;font-weight:700">💰 رصيد محفظتي</p>
+      <div class="wal-bal" id="d-wal-bal">0</div>
+      <p style="color:var(--gold);font-size:13px;font-weight:700">دينار عراقي</p>
+      <div style="margin-top:14px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.1);border-radius:12px;padding:10px">
+        <p style="color:rgba(245,200,66,.7);font-size:12px">يُخصم <strong style="color:var(--gold)">150 د.ع</strong> تلقائياً عند إنجاز كل طلبية</p>
+        <p style="color:rgba(245,200,66,.5);font-size:11px;margin-top:4px">⚠️ يجب أن يكون رصيدك كافياً لقبول الطلبيات</p>
+      </div>
+    </div>
+    <div class="sg fu fu1">
+      <div class="sbox"><div class="snum" id="dw-today"  style="color:var(--blue)">0</div><div class="slbl">اليوم</div></div>
+      <div class="sbox"><div class="snum" id="dw-deduct" style="color:var(--red)">0</div><div class="slbl">مستقطع د.ع</div></div>
+      <div class="sbox"><div class="snum" id="dw-earn"   style="color:var(--green)">0</div><div class="slbl">أجور د.ع</div></div>
+      <div class="sbox"><div class="snum" id="dw-trips"  style="color:var(--gold)">0</div><div class="slbl">رحلة</div></div>
+    </div>
+    <p style="color:var(--muted);font-size:12px;font-weight:700;margin-bottom:10px">📋 سجل الخصومات</p>
+    <div id="d-wal-log"></div>
+  </div></div>
+
+  <div class="body" id="dp-hist" style="display:none"><div class="pad"><div style="height:14px"></div>
+    <div class="sg fu">
+      <div class="sbox"><div class="snum" id="dh-total" style="color:var(--green)">0</div><div class="slbl">إجمالي منجز</div></div>
+      <div class="sbox"><div class="snum" id="dh-earn"  style="color:var(--gold)">0</div><div class="slbl">أجور د.ع</div></div>
+    </div>
+    <div id="d-hist-list"></div>
+  </div></div>
+
+  <nav class="bnav">
+    <button class="nb on" id="dn-avail"  onclick="dTab('avail')" style="position:relative"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>متاحة</button>
+    <button class="nb"    id="dn-mine"   onclick="dTab('mine')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>طلباتي</button>
+    <button class="nb"    id="dn-wallet" onclick="dTab('wallet')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>محفظة</button>
+    <button class="nb"    id="dn-hist"   onclick="dTab('hist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>سجل</button>
+  </nav>
+</div>
+
+<!-- ════ ADMIN ════ -->
+<div class="scr" id="scr-admin">
+  <div class="topbar">
+    <div><p style="color:var(--muted);font-size:11px">لوحة التحكم 👑</p><h2>المدير العام</h2></div>
+    <div class="tbr">
+      <div style="display:flex;align-items:center;gap:5px;background:rgba(16,217,122,.07);border:1px solid rgba(16,217,122,.15);border-radius:10px;padding:5px 10px">
+        <span class="ldot"></span><span style="color:var(--green);font-size:10px;font-weight:700">لايف</span>
+      </div>
+      <div class="avatar" onclick="logout()">🚪</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="at-orders"   onclick="aTab('orders')">الطلبيات</button>
+    <button class="tab"    id="at-track"    onclick="aTab('track')">🗺️ تتبع</button>
+    <button class="tab"    id="at-drivers"  onclick="aTab('drivers')">السائقون</button>
+    <button class="tab"    id="at-merchant" onclick="aTab('merchant')">التجار</button>
+    <button class="tab"    id="at-stats"    onclick="aTab('stats')">إحصائيات</button>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="body" id="ap-orders"><div class="pad"><div style="height:12px"></div>
+    <div class="chips">
+      <button class="chip on" onclick="aFilt(this,'all')">الكل</button>
+      <button class="chip" onclick="aFilt(this,'new')">جديدة</button>
+      <button class="chip" onclick="aFilt(this,'accepted')">مقبولة</button>
+      <button class="chip" onclick="aFilt(this,'picked')">في الطريق</button>
+      <button class="chip" onclick="aFilt(this,'delivered')">منجزة</button>
+      <button class="chip" onclick="aFilt(this,'cancelled')">ملغية</button>
+    </div>
+    <div id="a-all-list"></div>
+  </div></div>
+
+  <!-- LIVE MAP -->
+  <div class="body" id="ap-track" style="display:none"><div class="pad"><div style="height:12px"></div>
+    <p style="font-weight:800;margin-bottom:10px">🗺️ خريطة التتبع المباشر</p>
+    <div class="map-wrap"><div id="map-admin"></div></div>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:10px" id="a-live-count">جارٍ التحميل...</p>
+    <div id="a-live-list"></div>
+  </div></div>
+
+  <!-- DRIVERS -->
+  <div class="body" id="ap-drivers" style="display:none"><div class="pad"><div style="height:12px"></div>
+    <div id="a-drivers-list"></div>
+    <div class="card fu" style="margin-top:8px">
+      <p style="font-weight:900;font-size:15px;margin-bottom:14px">➕ إضافة سائق جديد</p>
+      <div class="frow"><label class="flbl">الاسم الكامل *</label><input class="inp" id="nd-name" placeholder="اسم السائق" style="margin:0"></div>
+      <div class="frow"><label class="flbl">📞 رقم الهاتف (للدخول) *</label><input class="inp" id="nd-phone" type="tel" placeholder="07XXXXXXXXX" style="margin:0"></div>
+      <div class="frow"><label class="flbl">🔒 كلمة المرور *</label>
+        <div class="inp-wrap"><input class="inp" id="nd-pass" type="password" placeholder="••••••" style="margin:0">
+        <button class="eye" onclick="togglePassField('nd-pass')">👁</button></div>
+      </div>
+      <div class="frow"><label class="flbl">💰 رصيد افتتاحي (د.ع)</label><input class="inp" id="nd-bal" type="number" placeholder="0" style="margin:0"></div>
+      <button class="btn btn-green" onclick="addDriver()">إضافة سائق +</button>
+    </div>
+  </div></div>
+
+  <!-- MERCHANTS -->
+  <div class="body" id="ap-merchant" style="display:none"><div class="pad"><div style="height:12px"></div>
+    <div id="a-merch-list"></div>
+    <div class="card fu" style="margin-top:8px">
+      <p style="font-weight:900;font-size:15px;margin-bottom:14px">➕ إضافة تاجر / مطعم</p>
+      <div class="frow"><label class="flbl">🏪 اسم المطعم *</label><input class="inp" id="nm-name" placeholder="اسم المطعم" style="margin:0"></div>
+      <div class="frow"><label class="flbl">📞 رقم هاتف المطعم (للدخول) *</label><input class="inp" id="nm-phone" type="tel" placeholder="07XXXXXXXXX" style="margin:0"></div>
+      <div class="frow"><label class="flbl">👤 اسم صاحب المطعم</label><input class="inp" id="nm-owner" placeholder="الاسم الكامل" style="margin:0"></div>
+      <div class="frow"><label class="flbl">📞 رقم صاحب المطعم (للتواصل)</label><input class="inp" id="nm-owner-phone" type="tel" placeholder="07XXXXXXXXX" style="margin:0"></div>
+      <div class="frow"><label class="flbl">📍 عنوان المطعم</label><input class="inp" id="nm-address" placeholder="المحافظة، الحي، الشارع" style="margin:0"></div>
+      <div class="frow"><label class="flbl">🗺️ رابط موقع المطعم (Google Maps)</label><input class="inp" id="nm-location" placeholder="https://maps.google.com/..." style="margin:0"></div>
+      <div class="frow"><label class="flbl">🔒 كلمة المرور *</label>
+        <div class="inp-wrap"><input class="inp" id="nm-pass" type="password" placeholder="••••••" style="margin:0">
+        <button class="eye" onclick="togglePassField('nm-pass')">👁</button></div>
+      </div>
+      <button class="btn btn-blue" onclick="addMerchant()">إضافة تاجر +</button>
+    </div>
+  </div></div>
+
+  <!-- STATS -->
+  <div class="body" id="ap-stats" style="display:none"><div class="pad"><div style="height:12px"></div>
+    <div class="sg fu">
+      <div class="sbox"><div class="snum" id="as-total"  style="color:var(--blue)">0</div><div class="slbl">إجمالي</div></div>
+      <div class="sbox"><div class="snum" id="as-done"   style="color:var(--green)">0</div><div class="slbl">منجزة</div></div>
+      <div class="sbox"><div class="snum" id="as-rev"    style="color:var(--gold)">0</div><div class="slbl">إيراد د.ع</div></div>
+      <div class="sbox"><div class="snum" id="as-deduct" style="color:var(--red)">0</div><div class="slbl">مستقطع د.ع</div></div>
+    </div>
+    <p style="color:var(--muted);font-size:12px;font-weight:700;margin-bottom:10px">🛵 أداء السائقين</p>
+    <div id="as-drivers"></div>
+    <p style="color:var(--muted);font-size:12px;font-weight:700;margin:14px 0 10px">🏪 أداء التجار</p>
+    <div id="as-merchants"></div>
+  </div></div>
+
+  <nav class="bnav">
+    <button class="nb on" id="an-orders"   onclick="aTab('orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>الطلبيات</button>
+    <button class="nb"    id="an-track"    onclick="aTab('track')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M2 12h4M18 12h4"/></svg>تتبع</button>
+    <button class="nb"    id="an-drivers"  onclick="aTab('drivers')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>السائقون</button>
+    <button class="nb"    id="an-merchant" onclick="aTab('merchant')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>التجار</button>
+    <button class="nb"    id="an-stats"    onclick="aTab('stats')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>إحصائيات</button>
+  </nav>
+</div>
+
+<!-- MODAL -->
+<div id="modal" onclick="closeMod()">
+  <div id="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div id="mcontent"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════
+// CONSTANTS & STATE
+// ═══════════════════════════════
+const DEDUCT = 150;
+let CU=null, DB={}, DRIVERS={}, MERCH={};
+let aFiltVal='all', selPayVal='cash', dAvailStatus=true;
+let prevNewCount=-1;
+let mapAdmin=null, mapMerchant=null, mapDriver=null;
+let driverMarkers={}, routeLines={};
+
+// ═══════════════════════════════
+// LOGIN
+// ═══════════════════════════════
+let selRoleVal=null;
+
+function selRole(r){
+  selRoleVal=r;
+  document.querySelectorAll('.rc').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('rc-'+r).classList.add('sel');
+  document.getElementById('lfields').style.display='block';
+  document.getElementById('lf-admin').style.display= r==='admin'   ?'block':'none';
+  document.getElementById('lf-phone').style.display= r!=='admin'   ?'block':'none';
+  setTimeout(()=>{
+    const el=document.getElementById(r==='admin'?'f-admin-user':'f-phone');
+    if(el) el.focus();
+  },100);
+}
+
+function togglePass(){ const f=document.getElementById('f-pass'); f.type=f.type==='password'?'text':'password'; }
+function togglePassField(id){ const f=document.getElementById(id); if(f) f.type=f.type==='password'?'text':'password'; }
+
+async function doLogin(){
+  if(!selRoleVal){ toast('اختر دورك أولاً'); return; }
+  const pass=document.getElementById('f-pass').value.trim();
+  if(!pass){ toast('أدخل كلمة المرور'); return; }
+
+  if(selRoleVal==='admin'){
+    const user=document.getElementById('f-admin-user').value.trim();
+    if(!user){ toast('أدخل اسم المستخدم'); return; }
+    if(user==='admin' && pass==='admin123'){ CU={role:'admin',name:'المدير العام'}; enterApp(); }
+    else toast('❌ بيانات المدير خاطئة');
+    return;
+  }
+
+  // Merchant & Driver login by phone
+  const phone=document.getElementById('f-phone').value.trim();
+  if(!phone){ toast('أدخل رقم الهاتف'); return; }
+
+  if(window.$fb){
+    const tbl = selRoleVal==='merchant'?'merchants':'drivers';
+    const snap=await window.$get(window.$ref(window.$db,tbl));
+    const data=snap.val()||{};
+    const e=Object.entries(data).find(([k,v])=>v.phone===phone && v.pass===pass);
+    if(e){
+      CU={...e[1], id:e[0], role:selRoleVal};
+      enterApp();
+    } else toast('❌ رقم الهاتف أو كلمة المرور خاطئة');
+  } else {
+    // demo
+    CU={role:selRoleVal,name:selRoleVal==='merchant'?'مطعم تجريبي':'سائق تجريبي',id:'demo-1',phone,wallet:5000};
+    enterApp();
+  }
+}
+
+function enterApp(){
+  showScr('scr-'+CU.role);
+  if(CU.role==='merchant'){ document.getElementById('m-name-top').textContent=CU.name; initMerchant(); }
+  if(CU.role==='driver')  { document.getElementById('d-name-top').textContent=CU.name; initDriver(); }
+  if(CU.role==='admin')   { initAdmin(); }
+  toast('أهلاً '+CU.name+' 👋');
+}
+
+function logout(){
+  CU=null;DB={};DRIVERS={};MERCH={};prevNewCount=-1;
+  ['f-pass','f-phone','f-admin-user'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  document.querySelectorAll('.rc').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('lfields').style.display='none';
+  selRoleVal=null;
+  showScr('scr-login');
+}
+
+// ═══════════════════════════════
+// FIREBASE
+// ═══════════════════════════════
+function listenAll(cb){
+  if(window.$fb){
+    window.$onValue(window.$ref(window.$db,'orders'),   s=>{DB=s.val()||{};     cb('orders');});
+    window.$onValue(window.$ref(window.$db,'drivers'),  s=>{DRIVERS=s.val()||{};cb('drivers');});
+    window.$onValue(window.$ref(window.$db,'merchants'),s=>{MERCH=s.val()||{};  cb('merchants');});
+  } else { cb('all'); setInterval(()=>cb('all'),3000); }
+}
+
+function pushOrder(data){
+  if(window.$fb){const r=window.$push(window.$ref(window.$db,'orders'));window.$set(r,{...data,id:r.key});return r.key;}
+  const id='O'+Date.now().toString(36).toUpperCase();
+  DB[id]={...data,id}; return id;
+}
+
+function updOrder(id,obj){
+  if(window.$fb) window.$update(window.$ref(window.$db,'orders/'+id),obj);
+  else{ if(DB[id]) Object.assign(DB[id],obj); refreshAll(); }
+}
+
+function updDriver(id,obj){
+  if(window.$fb) window.$update(window.$ref(window.$db,'drivers/'+id),obj);
+  else if(DRIVERS[id]) Object.assign(DRIVERS[id],obj);
+}
+
+function refreshAll(){
+  if(CU?.role==='merchant') renderMerchant();
+  if(CU?.role==='driver')   renderDriver();
+  if(CU?.role==='admin')    renderAdmin();
+  updateMaps();
+}
+
+// ═══════════════════════════════
+// SOUND NOTIFICATION
+// ═══════════════════════════════
+function playSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const beep=(f,s,d,v=0.4)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=f;o.type='sine';
+      g.gain.setValueAtTime(0,ctx.currentTime+s);
+      g.gain.linearRampToValueAtTime(v,ctx.currentTime+s+0.01);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+s+d);
+      o.start(ctx.currentTime+s);o.stop(ctx.currentTime+s+d+0.05);
+    };
+    beep(880,0,.12);beep(1100,.15,.12);beep(1320,.30,.2);
+  }catch(e){}
+}
+
+// ═══════════════════════════════
+// MAP (OpenStreetMap + Leaflet)
+// ═══════════════════════════════
+function initMap(containerId){
+  const m=L.map(containerId,{zoomControl:true,attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,
+    attribution:'© OpenStreetMap'
+  }).addTo(m);
+  m.setView([33.3152,44.3661],12); // Baghdad default
+  return m;
+}
+
+const driverIcon = L.divIcon({
+  html:'<div style="background:#10d97a;border:2px solid #fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.4)">🛵</div>',
+  className:'',iconSize:[20,20],iconAnchor:[10,10]
+});
+
+const restIcon = L.divIcon({
+  html:'<div style="background:#ff8c42;border:2px solid #fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 2px 8px rgba(0,0,0,.4)">🏪</div>',
+  className:'',iconSize:[18,18],iconAnchor:[9,9]
+});
+
+const custIcon = L.divIcon({
+  html:'<div style="background:#4f8eff;border:2px solid #fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 2px 8px rgba(0,0,0,.4)">📍</div>',
+  className:'',iconSize:[18,18],iconAnchor:[9,9]
+});
+
+function updateMaps(){
+  const activeDrvs=Object.entries(DRIVERS).filter(([k,v])=>v.lat&&v.lng&&v.isActive);
+  [mapAdmin, mapMerchant].forEach(m=>{
+    if(!m) return;
+    // Remove old markers
+    Object.values(driverMarkers).forEach(mk=>{ try{m.removeLayer(mk);}catch(e){} });
+  });
+
+  activeDrvs.forEach(([id,d])=>{
+    const pos=[d.lat,d.lng];
+    if(mapAdmin){
+      const mk=L.marker(pos,{icon:driverIcon}).addTo(mapAdmin);
+      mk.bindPopup(`<b>${d.name}</b><br>🛵 ${d.isActive?'نشط':'غير نشط'}`);
+    }
+    if(mapMerchant){
+      const mk=L.marker(pos,{icon:driverIcon}).addTo(mapMerchant);
+      mk.bindPopup(`<b>${d.name}</b>`);
+    }
+  });
+}
+
+// ═══════════════════════════════
+// GPS TRACKING for Driver
+// ═══════════════════════════════
+let gpsWatcher=null;
+
+function startGPS(){
+  if(!navigator.geolocation) return;
+  gpsWatcher=navigator.geolocation.watchPosition(pos=>{
+    if(!CU?.id) return;
+    const lat=pos.coords.latitude, lng=pos.coords.longitude;
+    if(window.$fb) window.$update(window.$ref(window.$db,'drivers/'+CU.id),{lat,lng,isActive:true,lastSeen:Date.now()});
+
+    // Update driver map
+    if(mapDriver){
+      if(!mapDriver._driverMk){
+        mapDriver._driverMk=L.marker([lat,lng],{icon:driverIcon}).addTo(mapDriver).bindPopup('موقعك الحالي');
+      } else {
+        mapDriver._driverMk.setLatLng([lat,lng]);
+      }
+      mapDriver.setView([lat,lng],15);
+    }
+  },{enableHighAccuracy:true,maximumAge:5000,timeout:10000});
+}
+
+function stopGPS(){
+  if(gpsWatcher) navigator.geolocation.clearWatch(gpsWatcher);
+  if(CU?.id&&window.$fb) window.$update(window.$ref(window.$db,'drivers/'+CU.id),{isActive:false});
+}
+
+// ═══════════════════════════════
+// MERCHANT
+// ═══════════════════════════════
+function initMerchant(){
+  mTab('new');
+  listenAll(()=>renderMerchant());
+  setTimeout(()=>{ mapMerchant=initMap('map-merchant'); },300);
+}
+
+function myOrders(){ return Object.values(DB).filter(o=>o.merchantId===CU?.id); }
+
+function selPay(p){
+  selPayVal=p;
+  document.getElementById('po-cash').style.borderColor=  p==='cash'?'var(--gold)':'var(--bdr)';
+  document.getElementById('po-cash').querySelector('p').style.color= p==='cash'?'var(--gold)':'var(--muted)';
+  document.getElementById('po-online').style.borderColor=p==='online'?'var(--teal)':'var(--bdr)';
+  document.getElementById('po-online').querySelector('p').style.color=p==='online'?'var(--teal)':'var(--muted)';
+}
+
+function mCalc(){
+  const p=+document.getElementById('mf-price').value||0;
+  const d=+document.getElementById('mf-del').value||0;
+  const el=document.getElementById('m-calc');
+  if(p||d){
+    el.style.display='block';
+    document.getElementById('mc-p').textContent=fmt(p)+' د.ع';
+    document.getElementById('mc-d').textContent=fmt(d)+' د.ع';
+    document.getElementById('mc-t').textContent=fmt(p+d)+' د.ع';
+  } else el.style.display='none';
+}
+
+function mPreview(){
+  const cust =document.getElementById('mf-cust').value.trim();
+  const cphone=document.getElementById('mf-cphone').value.trim();
+  const addr =document.getElementById('mf-addr').value.trim();
+  const desc =document.getElementById('mf-desc').value.trim();
+  const price=+document.getElementById('mf-price').value||0;
+  const del  =+document.getElementById('mf-del').value||0;
+  const notes=document.getElementById('mf-notes').value.trim();
+  if(!cust||!addr||!desc||!price){ toast('⚠️ أكمل الحقول المطلوبة'); return; }
+
+  openMod(`
+    <h3 style="font-size:18px;font-weight:900;margin-bottom:16px">📋 تأكيد الطلبية</h3>
+    <div class="card2" style="margin-bottom:10px">
+      ${row('الزبون',cust)}
+      ${cphone?row('هاتف الزبون','<a href="tel:'+cphone+'" style="color:var(--blue)">'+cphone+'</a>'):''}
+      ${row('العنوان',addr)}
+      ${row('الطلبية',desc)}
+      ${notes?row('ملاحظات',notes):''}
+      ${row('الدفع',selPayVal==='cash'?'💵 كاش':'💳 إلكتروني')}
+    </div>
+    <div class="card2" style="margin-bottom:16px">
+      ${row('سعر الطلبية',fmt(price)+' د.ع')}
+      ${row('سعر التوصيل',fmt(del)+' د.ع')}
+      <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--bdr);margin-top:4px">
+        <strong>الإجمالي</strong><strong style="color:var(--gold);font-size:18px">${fmt(price+del)} د.ع</strong>
+      </div>
+    </div>
+    <button class="btn btn-blue" onclick="submitOrder('${cust}','${cphone}','${addr.replace(/'/g,'')}','${desc}',${price},${del},'${notes}')">إرسال للسائقين 🚀</button>
+    <button onclick="closeMod()" style="width:100%;margin-top:10px;background:none;border:none;color:var(--muted);font-size:14px;font-family:inherit;cursor:pointer;padding:10px">إلغاء</button>
+  `);
+}
+
+function submitOrder(cust,cphone,addr,desc,price,del,notes){
+  const data={
+    customer:cust, customerPhone:cphone, address:addr, desc, price, delivery:del, notes,
+    payMethod:selPayVal,
+    merchantId:CU.id, merchantName:CU.name,
+    merchantPhone:CU.phone||'',
+    merchantOwner:CU.owner||'',
+    merchantOwnerPhone:CU.ownerPhone||'',
+    merchantAddress:CU.address||'',
+    merchantLocation:CU.location||'',
+    status:'new', createdAt:Date.now(), driverId:null, driverName:null
+  };
+  pushOrder(data);
+  closeMod();
+  ['mf-cust','mf-cphone','mf-addr','mf-desc','mf-price','mf-del','mf-notes'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('m-calc').style.display='none';
+  toast('✅ تم إرسال الطلبية!');
+  mTab('active');
+}
+
+function renderMerchant(){
+  const all=myOrders().sort((a,b)=>b.createdAt-a.createdAt);
+  const active=all.filter(o=>['new','accepted','picked'].includes(o.status));
+  const done=all.filter(o=>['delivered','cancelled'].includes(o.status));
+
+  const n=document.getElementById('m-act-n');
+  if(active.length){n.textContent=active.length;n.style.display='inline';}else n.style.display='none';
+  document.getElementById('m-act-list').innerHTML=active.length?active.map(o=>oCard(o,'merchant')).join(''):empty('لا توجد طلبيات نشطة','📭');
+  document.getElementById('m-done-list').innerHTML=done.length?done.map(o=>oCard(o,'merchant')).join(''):empty('لا توجد طلبيات منجزة','✅');
+
+  // Track tab
+  const liveOrders=active.filter(o=>['accepted','picked'].includes(o.status));
+  document.getElementById('m-track-orders').innerHTML=liveOrders.length?liveOrders.map(o=>`
+    <div class="card fu" style="border-color:rgba(16,217,122,.2)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="color:var(--blue);font-weight:800">#${sid(o.id)}</span>
+        <span class="bdg ${o.status==='picked'?'bdg-pick':'bdg-acc'}">${o.status==='picked'?'🛵 في الطريق':'✅ مقبولة'}</span>
+      </div>
+      <p style="font-weight:700;margin-bottom:2px">👤 ${o.customer}</p>
+      <p style="color:var(--muted);font-size:12px;margin-bottom:4px">📍 ${o.address}</p>
+      ${o.driverName?`<p style="color:var(--green);font-size:12px;font-weight:700">🛵 السائق: ${o.driverName}</p>`:'<p style="color:var(--orange);font-size:12px">⏳ ينتظر سائقاً...</p>'}
+    </div>`).join(''):empty('لا توجد طلبيات نشطة للتتبع','🗺️');
+
+  const today=todays(all);
+  document.getElementById('ms-today').textContent=today.length;
+  document.getElementById('ms-done').textContent=today.filter(o=>o.status==='delivered').length;
+  document.getElementById('ms-pend').textContent=today.filter(o=>['new','accepted','picked'].includes(o.status)).length;
+  document.getElementById('ms-rev').textContent=fmt(today.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.price+o.delivery,0));
+}
+
+function mTab(t){
+  ['new','active','done','track'].forEach(x=>{
+    document.getElementById('mt-'+x).classList.toggle('on',x===t);
+    document.getElementById('mp-'+x).style.display=x===t?'block':'none';
+    document.getElementById('mn-'+x).classList.toggle('on',x===t);
+  });
+  if(t==='track'&&mapMerchant) setTimeout(()=>mapMerchant.invalidateSize(),200);
+}
+
+// ═══════════════════════════════
+// DRIVER
+// ═══════════════════════════════
+function initDriver(){
+  dTab('avail');
+  listenAll(type=>{
+    renderDriver();
+    checkNewOrders();
+    updateMaps();
+  });
+  startGPS();
+  syncWallet();
+}
+
+function syncWallet(){
+  if(!CU?.id||!window.$fb) return;
+  window.$get(window.$ref(window.$db,'drivers/'+CU.id)).then(s=>{
+    const d=s.val();
+    if(d){ CU.wallet=d.wallet||0; updateWalletUI(); }
+  });
+}
+
+let prevNewCountD=-1;
+function checkNewOrders(){
+  const newOrds=Object.values(DB).filter(o=>o.status==='new');
+  const n=document.getElementById('d-new-n');
+  if(newOrds.length){n.textContent=newOrds.length;n.style.display='inline';}else n.style.display='none';
+  if(prevNewCountD>=0 && newOrds.length>prevNewCountD){
+    playSound();
+    toast('🔔 طلبية جديدة وصلت!',4000);
+  }
+  prevNewCountD=newOrds.length;
+}
+
+function updateWalletUI(){
+  const w=CU?.wallet||0;
+  document.getElementById('d-wal-top').textContent=fmt(w);
+  document.getElementById('d-wal-bal').textContent=fmt(w);
+}
+
+function renderDriver(){
+  if(!CU) return;
+  const avail=Object.values(DB).filter(o=>o.status==='new').sort((a,b)=>b.createdAt-a.createdAt);
+  const mine=Object.values(DB).filter(o=>o.driverId===CU.id&&['accepted','picked'].includes(o.status));
+  const hist=Object.values(DB).filter(o=>o.driverId===CU.id&&['delivered','cancelled'].includes(o.status)).sort((a,b)=>b.createdAt-a.createdAt);
+
+  document.getElementById('d-avail-list').innerHTML=avail.length?avail.map(o=>dAvailCard(o)).join(''):empty('لا توجد طلبيات الآن','🛵');
+  document.getElementById('d-mine-list').innerHTML=mine.length?mine.map(o=>dMineCard(o)).join(''):empty('لا توجد طلبيات في يدك','✅');
+
+  const todayDone=todays(hist.filter(o=>o.status==='delivered'));
+  document.getElementById('dw-today').textContent=todayDone.length;
+  document.getElementById('dw-deduct').textContent=fmt(todayDone.length*DEDUCT);
+  document.getElementById('dw-earn').textContent=fmt(todayDone.reduce((s,o)=>s+(o.delivery||0),0));
+  document.getElementById('dw-trips').textContent=hist.filter(o=>o.status==='delivered').length;
+
+  const wlog=hist.filter(o=>o.status==='delivered').slice(0,20);
+  document.getElementById('d-wal-log').innerHTML=wlog.length?wlog.map(o=>`
+    <div class="card2 fu" style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+      <div><p style="font-size:13px;font-weight:700">${o.customer}</p><p style="color:var(--muted);font-size:11px">${timeAgo(o.deliveredAt||o.createdAt)}</p></div>
+      <div style="text-align:left">
+        <p style="color:var(--red);font-weight:900">-${fmt(DEDUCT)} د.ع</p>
+        <p style="color:var(--green);font-size:11px">+${fmt(o.delivery||0)} أجرة</p>
+      </div>
+    </div>`).join(''):empty('لا يوجد سجل','💰');
+
+  const allDone=hist.filter(o=>o.status==='delivered');
+  document.getElementById('dh-total').textContent=allDone.length;
+  document.getElementById('dh-earn').textContent=fmt(allDone.reduce((s,o)=>s+(o.delivery||0),0));
+  document.getElementById('d-hist-list').innerHTML=hist.length?hist.map(o=>oCard(o,'driver')).join(''):empty('لا يوجد سجل','📋');
+
+  updateWalletUI();
+}
+
+function dAvailCard(o){
+  const w=CU?.wallet||0;
+  const canAccept=w>=DEDUCT;
+  return `<div class="card new-pulse fu" style="border-color:rgba(79,142,255,.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="color:var(--blue);font-weight:800;font-size:13px">#${sid(o.id)}</span>
+      <div style="display:flex;gap:5px">
+        <span class="bdg" style="background:rgba(${o.payMethod==='online'?'20,184,166':'245,200,66'},.12);color:var(--${o.payMethod==='online'?'teal':'gold'})">${o.payMethod==='online'?'💳 إلكتروني':'💵 كاش'}</span>
+        <span class="bdg bdg-new">جديدة 🔔</span>
+      </div>
+    </div>
+    <p style="font-weight:800;font-size:15px;margin-bottom:3px">👤 ${o.customer}</p>
+    ${o.customerPhone?`<a href="tel:${o.customerPhone}" style="color:var(--blue);font-size:12px;display:block;margin-bottom:3px;text-decoration:none">📞 الزبون: ${o.customerPhone}</a>`:''}
+    <p style="color:var(--muted);font-size:13px;margin-bottom:3px">📍 ${o.address}</p>
+    <p style="font-size:13px;margin-bottom:10px">📦 ${o.desc}</p>
+    ${o.notes?`<div style="background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.1);border-radius:10px;padding:8px;margin-bottom:10px"><p style="color:var(--gold);font-size:12px">💬 ${o.notes}</p></div>`:''}
+
+    <!-- Restaurant info -->
+    <div style="background:rgba(255,140,66,.06);border:1px solid rgba(255,140,66,.1);border-radius:12px;padding:10px;margin-bottom:12px">
+      <p style="color:var(--orange);font-size:12px;font-weight:800;margin-bottom:5px">🏪 ${o.merchantName}</p>
+      ${o.merchantPhone?`<a href="tel:${o.merchantPhone}" style="color:var(--teal);font-size:12px;display:block;margin-bottom:3px;text-decoration:none">📞 هاتف المطعم: ${o.merchantPhone}</a>`:''}
+      ${o.merchantOwnerPhone?`<a href="tel:${o.merchantOwnerPhone}" style="color:var(--blue);font-size:12px;display:block;margin-bottom:3px;text-decoration:none">👤 صاحب المطعم: ${o.merchantOwnerPhone}</a>`:''}
+      ${o.merchantAddress?`<p style="color:var(--muted);font-size:11px;margin-bottom:3px">📍 ${o.merchantAddress}</p>`:''}
+      ${o.merchantLocation?`<a href="${o.merchantLocation}" target="_blank" style="color:var(--green);font-size:12px;font-weight:700;text-decoration:none">🗺️ افتح موقع المطعم ←</a>`:''}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+      <div class="card3" style="text-align:center"><p style="color:var(--muted);font-size:9px;margin-bottom:2px">سعر الطلبية</p><p style="font-weight:900;font-size:14px">${fmt(o.price)} د.ع</p></div>
+      <div class="card3" style="text-align:center"><p style="color:var(--muted);font-size:9px;margin-bottom:2px">أجرتك</p><p style="font-weight:900;font-size:15px;color:var(--green)">${fmt(o.delivery)} د.ع</p></div>
+      <div class="card3" style="text-align:center"><p style="color:var(--muted);font-size:9px;margin-bottom:2px">يُخصم</p><p style="font-weight:900;font-size:14px;color:var(--red)">-${DEDUCT} د.ع</p></div>
+    </div>
+    ${!canAccept?`<div style="background:rgba(255,69,96,.08);border:1px solid rgba(255,69,96,.15);border-radius:10px;padding:8px;text-align:center;margin-bottom:8px"><p style="color:var(--red);font-size:12px;font-weight:700">⚠️ رصيدك غير كافٍ (${fmt(w)} د.ع) · يلزم ${DEDUCT} د.ع على الأقل</p></div>`:''}
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="event.stopPropagation();toast('تم التجاهل')">تجاهل</button>
+      <button class="btn ${canAccept?'btn-green':'btn-ghost'} btn-sm" style="flex:2" onclick="event.stopPropagation();${canAccept?`acceptOrder('${o.id}')`:'toast(\"رصيدك غير كافٍ\")'}">${canAccept?'✅ قبول الطلبية':'🔒 رصيد غير كافٍ'}</button>
+    </div>
+  </div>`;
+}
+
+function dMineCard(o){
+  const isPicked=o.status==='picked';
+  return `<div class="card fu" style="border-color:${isPicked?'rgba(168,85,247,.25)':'rgba(255,140,66,.25)'}">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="color:var(--blue);font-weight:800;font-size:13px">#${sid(o.id)}</span>
+      <span class="bdg ${isPicked?'bdg-pick':'bdg-acc'}">${isPicked?'🛵 في الطريق':'✅ مقبولة'}</span>
+    </div>
+    <p style="font-weight:800;font-size:15px;margin-bottom:3px">👤 ${o.customer}</p>
+    ${o.customerPhone?`<a href="tel:${o.customerPhone}" style="color:var(--blue);font-size:13px;display:block;margin-bottom:4px;text-decoration:none">📞 الزبون: ${o.customerPhone}</a>`:''}
+    <p style="color:var(--muted);font-size:13px;margin-bottom:8px">📍 ${o.address}</p>
+    <p style="font-size:13px;margin-bottom:12px">📦 ${o.desc}</p>
+
+    <!-- Restaurant contact -->
+    <div style="background:rgba(255,140,66,.06);border:1px solid rgba(255,140,66,.1);border-radius:12px;padding:10px;margin-bottom:12px">
+      <p style="color:var(--orange);font-size:12px;font-weight:800;margin-bottom:4px">🏪 ${o.merchantName}</p>
+      ${o.merchantPhone?`<a href="tel:${o.merchantPhone}" style="color:var(--teal);font-size:12px;display:block;margin-bottom:3px;text-decoration:none">📞 هاتف المطعم: ${o.merchantPhone}</a>`:''}
+      ${o.merchantOwnerPhone?`<a href="tel:${o.merchantOwnerPhone}" style="color:var(--blue);font-size:12px;display:block;margin-bottom:3px;text-decoration:none">👤 صاحب المطعم: ${o.merchantOwnerPhone}</a>`:''}
+      ${o.merchantAddress?`<p style="color:var(--muted);font-size:11px;margin-bottom:3px">📍 ${o.merchantAddress}</p>`:''}
+      ${o.merchantLocation?`<a href="${o.merchantLocation}" target="_blank" style="color:var(--green);font-size:12px;font-weight:700;text-decoration:none;display:block">🗺️ موقع المطعم ←</a>`:''}
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div class="card3" style="flex:1;text-align:center"><p style="color:var(--muted);font-size:9px;margin-bottom:2px">تحصّل من الزبون</p><p style="font-weight:900;font-size:17px;color:var(--gold)">${fmt(o.price+o.delivery)} د.ع</p></div>
+      <div class="card3" style="flex:1;text-align:center"><p style="color:var(--muted);font-size:9px;margin-bottom:2px">أجرتك</p><p style="font-weight:900;font-size:17px;color:var(--green)">${fmt(o.delivery)} د.ع</p></div>
+    </div>
+    ${!isPicked
+      ?`<button class="btn btn-orange" style="width:100%;margin-bottom:8px" onclick="pickupOrder('${o.id}')">🛵 التقطت الطلبية من المطعم</button>`
+      :`<button class="btn btn-green" style="width:100%;margin-bottom:8px" onclick="deliverOrder('${o.id}')">🎉 تم التوصيل للزبون</button>`
+    }
+  </div>`;
+}
+
+function acceptOrder(id){
+  updOrder(id,{status:'accepted',driverId:CU.id,driverName:CU.name,acceptedAt:Date.now()});
+  toast('✅ قبلت الطلبية!'); dTab('mine');
+}
+
+function pickupOrder(id){
+  updOrder(id,{status:'picked',pickedAt:Date.now()});
+  toast('🛵 على الطريق!');
+}
+
+function deliverOrder(id){
+  updOrder(id,{status:'delivered',deliveredAt:Date.now()});
+  const newW=(CU.wallet||0)-DEDUCT;
+  CU.wallet=newW;
+  updDriver(CU.id,{wallet:newW});
+  updateWalletUI();
+  toast('🎉 تم التوصيل! خُصم '+DEDUCT+' د.ع');
+}
+
+function toggleAvail(){
+  dAvailStatus=!dAvailStatus;
+  const btn=document.getElementById('d-status-btn');
+  btn.className=dAvailStatus?'s-avail':'s-busy';
+  btn.textContent=dAvailStatus?'🟢 متاح':'🔴 مشغول';
+  if(CU?.id) updDriver(CU.id,{isAvailable:dAvailStatus});
+  toast(dAvailStatus?'🟢 أنت متاح':'🔴 وضع عدم الإزعاج');
+}
+
+function dTab(t){
+  ['avail','mine','wallet','hist'].forEach(x=>{
+    document.getElementById('dt-'+x).classList.toggle('on',x===t);
+    document.getElementById('dp-'+x).style.display=x===t?'block':'none';
+    document.getElementById('dn-'+x).classList.toggle('on',x===t);
+  });
+}
+
+// ═══════════════════════════════
+// ADMIN
+// ═══════════════════════════════
+function initAdmin(){
+  aTab('orders');
+  listenAll(()=>{ renderAdmin(); updateMaps(); });
+  setTimeout(()=>{ mapAdmin=initMap('map-admin'); },300);
+}
+
+function renderAdmin(){
+  // Orders
+  let orders=Object.values(DB).sort((a,b)=>b.createdAt-a.createdAt);
+  if(aFiltVal!=='all') orders=orders.filter(o=>o.status===aFiltVal);
+  document.getElementById('a-all-list').innerHTML=orders.length?orders.map(o=>oCard(o,'admin')).join(''):empty('لا توجد طلبيات','📭');
+
+  // Live map orders
+  const live=Object.values(DB).filter(o=>['new','accepted','picked'].includes(o.status));
+  document.getElementById('a-live-count').textContent=live.length?live.length+' طلبية نشطة الآن 🔴':'لا توجد طلبيات نشطة';
+  document.getElementById('a-live-list').innerHTML=live.length?live.map(o=>oCard(o,'admin')).join(''):empty('لا توجد طلبيات نشطة','🟢');
+
+  // Drivers
+  const drList=Object.entries(DRIVERS).map(([k,v])=>({...v,id:k}));
+  document.getElementById('a-drivers-list').innerHTML=drList.length?drList.map(d=>`
+    <div class="card fu">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:${d.owner?'10px':'0'}">
+        <div style="width:44px;height:44px;border-radius:14px;background:rgba(16,217,122,.1);border:1px solid rgba(16,217,122,.15);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🛵</div>
+        <div style="flex:1">
+          <p style="font-weight:800">${d.name}</p>
+          <a href="tel:${d.phone}" style="color:var(--blue);font-size:12px;text-decoration:none">📞 ${d.phone||'—'}</a>
+        </div>
+        <div style="text-align:left">
+          <p style="color:var(--gold);font-weight:900;font-size:16px">${fmt(d.wallet||0)}</p>
+          <p style="color:var(--muted);font-size:10px">د.ع المحفظة</p>
+        </div>
+        <button class="btn btn-xs btn-ghost" onclick="adminDriverMenu('${d.id}','${d.name}',${d.wallet||0})">⚙️</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <span style="background:${d.isAvailable?'rgba(16,217,122,.1)':'rgba(255,69,96,.1)'};border:1px solid ${d.isAvailable?'rgba(16,217,122,.2)':'rgba(255,69,96,.2)'};border-radius:8px;padding:3px 8px;font-size:11px;color:${d.isAvailable?'var(--green)':'var(--red)'};font-weight:700">${d.isAvailable?'🟢 متاح':'🔴 مشغول'}</span>
+        ${d.isActive?'<span style="background:rgba(79,142,255,.1);border:1px solid rgba(79,142,255,.2);border-radius:8px;padding:3px 8px;font-size:11px;color:var(--blue);font-weight:700">📍 يُتتبع الآن</span>':''}
+      </div>
+    </div>`).join(''):empty('لا يوجد سائقون','🛵');
+
+  // Merchants
+  const mList=Object.entries(MERCH).map(([k,v])=>({...v,id:k}));
+  document.getElementById('a-merch-list').innerHTML=mList.length?mList.map(m=>`
+    <div class="card fu">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="width:44px;height:44px;border-radius:14px;background:rgba(255,140,66,.1);border:1px solid rgba(255,140,66,.15);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🏪</div>
+        <div style="flex:1">
+          <p style="font-weight:800">${m.name}</p>
+          <a href="tel:${m.phone}" style="color:var(--teal);font-size:12px;text-decoration:none">📞 ${m.phone||'—'}</a>
+        </div>
+      </div>
+      <div style="background:var(--s3);border-radius:12px;padding:10px">
+        ${m.owner?`<p style="font-size:12px;margin-bottom:4px">👤 <strong>${m.owner}</strong></p>`:''}
+        ${m.ownerPhone?`<a href="tel:${m.ownerPhone}" style="color:var(--blue);font-size:12px;display:block;margin-bottom:4px;text-decoration:none">📞 صاحب المطعم: ${m.ownerPhone}</a>`:''}
+        ${m.address?`<p style="color:var(--muted);font-size:11px;margin-bottom:4px">📍 ${m.address}</p>`:''}
+        ${m.location?`<a href="${m.location}" target="_blank" style="color:var(--green);font-size:12px;font-weight:700;text-decoration:none">🗺️ موقع المطعم ←</a>`:''}
+      </div>
+    </div>`).join(''):empty('لا يوجد تجار','🏪');
+
+  // Stats
+  const all2=Object.values(DB);
+  const done=all2.filter(o=>o.status==='delivered');
+  document.getElementById('as-total').textContent=all2.length;
+  document.getElementById('as-done').textContent=done.length;
+  document.getElementById('as-rev').textContent=fmt(done.reduce((s,o)=>s+o.price+o.delivery,0));
+  document.getElementById('as-deduct').textContent=fmt(done.length*DEDUCT);
+
+  const dStats={};
+  done.forEach(o=>{if(!o.driverName)return;if(!dStats[o.driverName])dStats[o.driverName]={c:0,earn:0,id:o.driverId};dStats[o.driverName].c++;dStats[o.driverName].earn+=o.delivery||0;});
+  document.getElementById('as-drivers').innerHTML=Object.entries(dStats).sort((a,b)=>b[1].c-a[1].c).map(([n,s])=>`
+    <div class="card fu" style="display:flex;justify-content:space-between;align-items:center">
+      <div><p style="font-weight:800">🛵 ${n}</p><p style="color:var(--muted);font-size:12px">${s.c} طلبية · -${fmt(s.c*DEDUCT)} د.ع مستقطع</p></div>
+      <div style="text-align:left"><p style="color:var(--green);font-weight:900">${fmt(s.earn)} د.ع</p>
+      <button class="btn btn-xs btn-ghost" onclick="adminDriverMenu('${s.id||''}','${n}',0)" style="margin-top:4px">⚙️</button></div>
+    </div>`).join('')||empty('لا بيانات','📊');
+
+  const mStats={};
+  done.forEach(o=>{if(!o.merchantName)return;if(!mStats[o.merchantName])mStats[o.merchantName]={c:0,rev:0};mStats[o.merchantName].c++;mStats[o.merchantName].rev+=o.price+o.delivery||0;});
+  document.getElementById('as-merchants').innerHTML=Object.entries(mStats).sort((a,b)=>b[1].c-a[1].c).map(([n,s])=>`
+    <div class="card fu" style="display:flex;justify-content:space-between;align-items:center">
+      <p style="font-weight:800">🏪 ${n}<br><span style="color:var(--muted);font-size:12px">${s.c} طلبية</span></p>
+      <p style="color:var(--gold);font-weight:900">${fmt(s.rev)} د.ع</p>
+    </div>`).join('')||empty('لا بيانات','📊');
+}
+
+function adminDriverMenu(id,name,wallet){
+  openMod(`
+    <h3 style="font-size:17px;font-weight:900;margin-bottom:16px">⚙️ إدارة السائق: ${name}</h3>
+    <div class="card2" style="margin-bottom:14px">
+      <div class="row"><span style="color:var(--muted)">رصيد المحفظة</span><span style="color:var(--gold);font-weight:900;font-size:18px">${fmt(wallet)} د.ع</span></div>
+    </div>
+
+    <p style="font-weight:800;margin-bottom:8px;font-size:13px">💰 شحن / خصم المحفظة</p>
+    <div class="frow"><input class="inp" id="aw-amt" type="number" placeholder="موجب للشحن، سالب للخصم" style="margin:0"></div>
+    <button class="btn btn-gold" style="margin-bottom:14px" onclick="updateWallet('${id}',${wallet})">تحديث المحفظة 💰</button>
+
+    <div style="height:1px;background:var(--bdr);margin-bottom:14px"></div>
+
+    <p style="font-weight:800;margin-bottom:8px;font-size:13px">↔️ نقل طلبية لهذا السائق</p>
+    <div class="frow"><input class="inp" id="aw-oid" placeholder="الصق رقم الطلبية الكاملة..." style="margin:0"></div>
+    <button class="btn btn-orange" style="margin-bottom:14px" onclick="reassignOrder('${id}','${name}')">نقل الطلبية →</button>
+
+    <button onclick="closeMod()" style="width:100%;background:none;border:1px solid var(--bdr);border-radius:14px;color:var(--muted);font-size:14px;font-family:inherit;cursor:pointer;padding:12px">إغلاق</button>
+  `);
+}
+
+function updateWallet(driverId,current){
+  const amt=+document.getElementById('aw-amt').value;
+  if(!amt){toast('أدخل مبلغاً');return;}
+  const newW=current+amt;
+  updDriver(driverId,{wallet:newW});
+  if(CU?.id===driverId){CU.wallet=newW;updateWalletUI();}
+  toast(`✅ ${amt>0?'تم الشحن':'تم الخصم'}: ${Math.abs(amt)} د.ع`);
+  closeMod();
+}
+
+function reassignOrder(driverId,driverName){
+  const oid=document.getElementById('aw-oid').value.trim();
+  if(!oid){toast('أدخل رقم الطلبية');return;}
+  // Search by full ID or short ID
+  const found=Object.values(DB).find(o=>o.id===oid||sid(o.id)===oid.toUpperCase());
+  if(!found){toast('❌ الطلبية غير موجودة');return;}
+  if(['delivered','cancelled'].includes(found.status)){toast('❌ الطلبية منتهية');return;}
+  updOrder(found.id,{driverId,driverName,status:'accepted',reassignedAt:Date.now()});
+  toast('✅ نُقلت الطلبية لـ '+driverName);
+  closeMod();
+}
+
+async function addDriver(){
+  const name=document.getElementById('nd-name').value.trim();
+  const phone=document.getElementById('nd-phone').value.trim();
+  const pass=document.getElementById('nd-pass').value.trim();
+  const bal=+document.getElementById('nd-bal').value||0;
+  if(!name||!phone||!pass){toast('⚠️ أكمل البيانات');return;}
+  const data={name,phone,pass,wallet:bal,role:'driver',isAvailable:true,isActive:false,createdAt:Date.now()};
+  if(window.$fb){const r=window.$push(window.$ref(window.$db,'drivers'));await window.$set(r,{...data,id:r.key});}
+  else DRIVERS['d'+Date.now()]=data;
+  ['nd-name','nd-phone','nd-pass','nd-bal'].forEach(i=>document.getElementById(i).value='');
+  toast('✅ تمت إضافة السائق: '+name);
+  renderAdmin();
+}
+
+async function addMerchant(){
+  const name=document.getElementById('nm-name').value.trim();
+  const phone=document.getElementById('nm-phone').value.trim();
+  const owner=document.getElementById('nm-owner').value.trim();
+  const ownerPhone=document.getElementById('nm-owner-phone').value.trim();
+  const address=document.getElementById('nm-address').value.trim();
+  const location=document.getElementById('nm-location').value.trim();
+  const pass=document.getElementById('nm-pass').value.trim();
+  if(!name||!phone||!pass){toast('⚠️ أكمل البيانات المطلوبة');return;}
+  const data={name,phone,owner,ownerPhone,address,location,pass,role:'merchant',createdAt:Date.now()};
+  if(window.$fb){const r=window.$push(window.$ref(window.$db,'merchants'));await window.$set(r,{...data,id:r.key});}
+  else MERCH['m'+Date.now()]=data;
+  ['nm-name','nm-phone','nm-owner','nm-owner-phone','nm-address','nm-location','nm-pass'].forEach(i=>document.getElementById(i).value='');
+  toast('✅ تمت إضافة التاجر: '+name);
+  renderAdmin();
+}
+
+function aFilt(el,val){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on'); aFiltVal=val; renderAdmin();
+}
+
+function aTab(t){
+  ['orders','track','drivers','merchant','stats'].forEach(x=>{
+    document.getElementById('at-'+x).classList.toggle('on',x===t);
+    document.getElementById('ap-'+x).style.display=x===t?'block':'none';
+    document.getElementById('an-'+x).classList.toggle('on',x===t);
+  });
+  if(t==='track'&&mapAdmin) setTimeout(()=>{ mapAdmin.invalidateSize(); updateMaps(); },200);
+}
+
+// ═══════════════════════════════
+// SHARED ORDER CARD
+// ═══════════════════════════════
+const sMap={new:'bdg-new',accepted:'bdg-acc',picked:'bdg-pick',delivered:'bdg-done',cancelled:'bdg-can'};
+const sLbl={new:'جديدة 🔔',accepted:'مقبولة ✅',picked:'في الطريق 🛵',delivered:'منجزة 🎉',cancelled:'ملغية ❌'};
+
+function oCard(o,viewer){
+  return `<div class="card fu" onclick="openOrder('${o.id}','${viewer}')">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="color:var(--blue);font-weight:800;font-size:13px">#${sid(o.id)}</span>
+      <div style="display:flex;gap:5px">
+        <span class="bdg" style="font-size:10px;background:rgba(${o.payMethod==='online'?'20,184,166':'245,200,66'},.1);color:var(--${o.payMethod==='online'?'teal':'gold'})">${o.payMethod==='online'?'💳':'💵'}</span>
+        <span class="bdg ${sMap[o.status]||''}">${sLbl[o.status]||o.status}</span>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div style="flex:1;min-width:0">
+        <p style="font-weight:800;font-size:14px;margin-bottom:2px">👤 ${o.customer}</p>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 ${o.address}</p>
+        <p style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📦 ${o.desc}</p>
+      </div>
+      <div style="text-align:left;flex-shrink:0;margin-right:10px">
+        <p style="color:var(--gold);font-weight:900;font-size:15px">${fmt((o.price||0)+(o.delivery||0))} د.ع</p>
+        <p style="color:var(--muted);font-size:11px">${timeAgo(o.createdAt)}</p>
+      </div>
+    </div>
+    ${o.driverName?`<p style="color:var(--green);font-size:11px;margin-top:6px;font-weight:700">🛵 ${o.driverName}</p>`:''}
+    ${o.merchantName&&viewer==='admin'?`<p style="color:var(--orange);font-size:11px;margin-top:2px;font-weight:700">🏪 ${o.merchantName}</p>`:''}
+  </div>`;
+}
+
+function openOrder(id,viewer){
+  const o=DB[id]; if(!o) return;
+  let actions='';
+  if(viewer==='admin'&&!['delivered','cancelled'].includes(o.status)){
+    actions=`
+      <button class="btn btn-red" style="margin-bottom:8px" onclick="if(confirm('إلغاء الطلبية؟')){updOrder('${id}',{status:'cancelled',cancelledAt:Date.now()});toast('🗑️ تم الإلغاء');closeMod();}">🗑️ إلغاء الطلبية</button>`;
+  }
+  openMod(`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="font-size:18px;font-weight:900">#${sid(o.id)}</h3>
+      <span class="bdg ${sMap[o.status]||''}">${sLbl[o.status]||o.status}</span>
+    </div>
+    <div class="card2" style="margin-bottom:10px">
+      ${row('الزبون',o.customer)}
+      ${o.customerPhone?row('هاتف الزبون','<a href="tel:'+o.customerPhone+'" style="color:var(--blue)">'+o.customerPhone+'</a>'):''}
+      ${row('العنوان',o.address)}
+      ${row('الطلبية',o.desc)}
+      ${o.notes?row('ملاحظات',o.notes):''}
+      ${row('الدفع',o.payMethod==='online'?'💳 إلكتروني':'💵 كاش')}
+    </div>
+    <div class="card2" style="margin-bottom:10px">
+      ${row('سعر الطلبية',fmt(o.price||0)+' د.ع')}
+      ${row('سعر التوصيل',fmt(o.delivery||0)+' د.ع')}
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--bdr);margin-top:4px">
+        <strong>الإجمالي</strong><strong style="color:var(--gold);font-size:17px">${fmt((o.price||0)+(o.delivery||0))} د.ع</strong>
+      </div>
+    </div>
+    <div class="card2" style="margin-bottom:14px">
+      ${row('المطعم',o.merchantName||'—')}
+      ${o.merchantPhone?row('هاتف المطعم','<a href="tel:'+o.merchantPhone+'" style="color:var(--teal)">'+o.merchantPhone+'</a>'):''}
+      ${o.merchantOwnerPhone?row('صاحب المطعم','<a href="tel:'+o.merchantOwnerPhone+'" style="color:var(--blue)">'+o.merchantOwnerPhone+'</a>'):''}
+      ${row('السائق',o.driverName||'<span style="color:var(--muted)">لم يُحدد</span>')}
+      ${row('وقت الطلب',new Date(o.createdAt).toLocaleString('ar-IQ'))}
+      ${o.deliveredAt?row('وقت التوصيل',new Date(o.deliveredAt).toLocaleString('ar-IQ')):''}
+    </div>
+    ${actions}
+    <button onclick="closeMod()" style="width:100%;background:none;border:1px solid var(--bdr);border-radius:14px;color:var(--muted);font-size:14px;font-family:inherit;cursor:pointer;padding:12px">إغلاق</button>
+  `);
+}
+
+// ═══════════════════════════════
+// UTILS
+// ═══════════════════════════════
+function showScr(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');}
+function openMod(html){document.getElementById('mcontent').innerHTML=html;document.getElementById('modal').classList.add('on');}
+function closeMod(){document.getElementById('modal').classList.remove('on');}
+
+let toastT;
+function toast(msg,dur=2800){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),dur);
+}
+
+function fmt(n){return Number(n||0).toLocaleString('ar-IQ');}
+function sid(id){return(id||'').toString().slice(-6).toUpperCase();}
+function timeAgo(ts){
+  if(!ts)return'';
+  const m=Math.floor((Date.now()-ts)/60000),h=Math.floor(m/60),d=Math.floor(h/24);
+  if(m<1)return'الآن';if(m<60)return'منذ '+m+' دقيقة';
+  if(h<24)return'منذ '+h+' ساعة';return'منذ '+d+' يوم';
+}
+function row(label,val){return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bdr)"><span style="color:var(--muted);font-size:12px;flex-shrink:0">${label}</span><span style="font-size:13px;font-weight:600;text-align:left;max-width:62%">${val}</span></div>`;}
+function empty(msg,icon='📭'){return`<div class="empty"><div class="ei">${icon}</div><p>${msg}</p></div>`;}
+function todays(arr){const t=new Date().toDateString();return arr.filter(o=>new Date(o.createdAt).toDateString()===t);}
+
+// Enter key
+document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+// SW
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+// Cleanup GPS on exit
+window.addEventListener('beforeunload',stopGPS);
+</script>
+</body>
+</html>
